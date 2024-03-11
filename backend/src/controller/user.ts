@@ -55,7 +55,15 @@ export async function handleSignupPostreq(c: Context) {
 
     const token = await Jwt.sign(userId, c.env.JWT_TOKEN);
 
-    return c.json({ msg: "User created successfully", token: token });
+    return c.json({
+      msg: "User created successfully",
+      token: token,
+      user: {
+        userId: res.id,
+        username: res.username,
+        email: res.email,
+      },
+    });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
   }
@@ -100,6 +108,11 @@ export async function handleSigninPostreq(c: Context) {
     return c.json({
       message: "User logged-In successfully",
       token: token,
+      user: {
+        userId: userId,
+        username: isUserExist.username,
+        email: isUserExist.email,
+      },
     });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
@@ -108,7 +121,6 @@ export async function handleSigninPostreq(c: Context) {
 
 // this controller send all the posts
 export async function handlegetPosts(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -124,11 +136,11 @@ export async function handlegetPosts(c: Context) {
       post: resp.map((res) => ({
         id: res.id,
         username: res.User.username,
-        userId: res.id,
+        userId: res.User.id,
         title: res.title,
         body: res.body,
         tags: res.tags,
-        createdAt: res.createdAt
+        createdAt: res.createdAt,
       })),
     });
   } catch (error) {
@@ -138,29 +150,18 @@ export async function handlegetPosts(c: Context) {
 
 //this controller send only user posts
 export async function handlegetMainUserPosts(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
   try {
-    const resp = await prisma.user.findMany({
+    const resp = await prisma.posts.findMany({
       where: {
-        id: c.get("userId"),
-      },
-      include: {
-        posts: {
-          include: {
-            tags: true,
-          },
-        },
+        userId: c.get("userId"),
       },
     });
     return c.json({
-      post: resp.map((res) => ({
-        username: res.username,
-        posts: res.posts,
-      })),
+      post: resp,
     });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
@@ -169,7 +170,6 @@ export async function handlegetMainUserPosts(c: Context) {
 
 // this controller create new post
 export async function handlePostPostreq(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -209,9 +209,9 @@ export async function handlePostPostreq(c: Context) {
         id: res.id,
         title: res.title,
         body: res.body,
-        tags: res.tags.map(tag=> tag.tag),
-        createdAt: res.createdAt
-      }
+        tags: res.tags.map((tag) => tag.tag),
+        createdAt: res.createdAt,
+      },
     });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
@@ -220,7 +220,6 @@ export async function handlePostPostreq(c: Context) {
 
 // this controller send the specific post
 export async function handleGetPostById(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -247,7 +246,7 @@ export async function handleGetPostById(c: Context) {
         title: isPostExist.title,
         body: isPostExist.body,
         tags: isPostExist.tags,
-        createdAt: isPostExist.createdAt
+        createdAt: isPostExist.createdAt,
       },
     });
   } catch (error) {
@@ -257,7 +256,6 @@ export async function handleGetPostById(c: Context) {
 
 // this controller update the specific post
 export async function handlePutById(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -310,7 +308,7 @@ export async function handlePutById(c: Context) {
         title: res.title,
         body: res.body,
         tags: res.tags,
-        createdAt: res.createdAt
+        createdAt: res.createdAt,
       },
     });
   } catch (error) {
@@ -320,7 +318,6 @@ export async function handlePutById(c: Context) {
 
 // this controller delete the specific post
 export async function handlePostDeleteById(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -349,15 +346,13 @@ export async function handlePostDeleteById(c: Context) {
       message: "post deleted",
     });
   } catch (error) {
-    return c.json({ msg:`Internal server error: ${error}`}, 500);
+    return c.json({ msg: `Internal server error: ${error}` }, 500);
   }
 }
-
 
 // to get user by Id
 
 export async function handlegetUserById(c: Context) {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -391,7 +386,6 @@ export async function handlegetUserById(c: Context) {
 
 //to get all user
 export const handlegetAllUsers = async (c: Context) => {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -412,7 +406,6 @@ export const handlegetAllUsers = async (c: Context) => {
 
 //get all tagnames
 export const handleGetTags = async (c: Context) => {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -421,16 +414,15 @@ export const handleGetTags = async (c: Context) => {
     const res = await prisma.tags.findMany();
 
     return c.json({
-      tags : res
-    })
+      tags: res,
+    });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
   }
-}
+};
 
 //get all post by tagname
 export const handlePostsByTags = async (c: Context) => {
-
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
@@ -440,39 +432,32 @@ export const handlePostsByTags = async (c: Context) => {
       where: {
         tag: String(c.req.param("tag")),
       },
-      include: {
-        post: true,
+      select: {
+        post: {
+          select: { 
+            User: { select: { username: true } },
+            id: true,
+            userId: true,
+            title:true,
+            body: true,
+            createdAt: true
+          },
+          
+        },
       },
     });
 
     return c.json({
-      data : res.map(post=>({
-        posts: post.post
-      }))
-    })
+       posts: res[0].post.map(post=>({
+        username: post.User.username,
+        id: post.id,
+        title: post.title,
+        userId: post.userId,
+        body: post.body,
+        createdAt: post.createdAt
+       }))
+    });
   } catch (error) {
     return c.body(`Internal server error: ${error}`, 500);
   }
-}
-
-export const handleGetUserDetails = async (c:Context) => {
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-  }).$extends(withAccelerate());
-
-  try {
-    const res = await prisma.user.findUnique({
-      where: {
-        id: c.get("userId")
-      }
-    })
-
-    return c.json({
-      id: res?.id,
-      username: res?.username,
-      email: res?.email,
-    })
-  } catch (error) {
-    return c.body(`Internal server error: ${error}`, 500);
-  }
-}
+};

@@ -1,12 +1,14 @@
 // import axios from "axios";
-import Icon from "./small/Icon"
+import { useNavigate } from "react-router-dom";
+
 
 function AppBar() {
+  const navigate = useNavigate()
   return (
     <>
       <div className="flex h-16  box-border justify-between items-center border-b-0 shadow-sm pl-9 pr-9">
-        <div className="flex gap-2">
-          <img src="/blog-svgrepo-com.svg" alt="icon" className="h-10" />
+        <div className="flex gap-2 cursor-pointer">
+          <img src="/blog-svgrepo-com.svg" alt="icon" className="h-10" onClick={()=>{navigate("/dashboard")}}/>
 
           <input
             type="text"
@@ -26,18 +28,21 @@ function AppBar() {
             <span className="text-gray-500">write</span>
           </div>
 
-          <div className="flex items-center cursor-pointer">
+          <div className="flex items-center cursor-pointer" onClick={() => {
+            localStorage.clear();
+            navigate("/signin")
+          }}>
             <img
               src="/icons8-logout-64.png"
               alt="logout"
               className="h-6"
-              onClick={() => {}}
             />
             <span className="text-gray-500">logout</span>
           </div>
 
-          <Icon hwt={"h-8 w-8 text-2xl"}>Sumit</Icon>
+          <div onClick={()=>{navigate("/profile")}} className="cursor-pointer rounded-full box-border border-black flex items-center justify-center font-serif bg-green-700 text-white h-8 w-8 text-2xl">{(JSON.parse(localStorage.getItem("User")!)).username[0]}</div>
         </div>
+        
       </div>
     </>
   );

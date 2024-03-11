@@ -16,9 +16,9 @@ export async function authmiddleware(c: any, next: Next) {
         return c.body("you are unauthroized user sorry", 401);
       }
     } else {
-      return c.body("you are unauthroized user sorry", 401);
+      return c.body("you are unauthroized user", 401);
     }
   } catch (error) {
-    return c.body("you are unauthroized user sorry", 401);
+    return c.body("unauthroized ", 401);
   }
 }
